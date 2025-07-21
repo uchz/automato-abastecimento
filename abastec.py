@@ -6,8 +6,49 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.action_chains import ActionChains
 from time import sleep
-# %%
+import pandas as pd
+# %% TRATAR OS ARQUIVOS
 
+
+
+#Procura o arquivo no Desktop
+df = pd.read_excel('abastecimento-por-oc.xls', header=2)
+
+#Removendo colunas
+df.drop(columns=['TIPOTAREFA', 'DESCDESTINO','DESCORIGEM','CODENDORIGEM','CODENDDESTINO','NUTAREFA', 'DTTAREFA','TIPOTAREFA' ], inplace=True)
+
+df = df[df['PRIORIDADE'] != -999999999]
+
+# Criar uma nova coluna para armazenar os valores atribuídos
+df['novo_valor'] = 0
+
+# Inicializar a variável de controle para atribuir valores diferentes
+novo_valor = -89
+
+# Criar um dicionário para rastrear o último valor atribuído para cada ordem de carga
+ultimo_valor_por_ordem = {}
+df.set_index('ORDEMCARGA')
+
+# Iterar sobre as linhas do DataFrame
+for index, row in df.iterrows():
+    ordem_de_carga = row['ORDEMCARGA']
+
+    # Verificar se a ordem de carga já foi encontrada anteriormente
+    if ordem_de_carga not in ultimo_valor_por_ordem:
+        # Se não foi encontrada, atribuir um novo valor
+        ultimo_valor_por_ordem[ordem_de_carga] = novo_valor
+        novo_valor += 1
+
+    # Atribuir o valor à nova coluna
+    df.at[index, 'novo_valor'] = ultimo_valor_por_ordem[ordem_de_carga]
+
+
+# Tirando valores duplicados
+df.drop_duplicates(subset=['CODPROD'], inplace=True)
+
+
+
+#%%  ABRIR O CHROME
 options = webdriver.ChromeOptions()
 # options.add_argument("--headless")  # REMOVA isso
 driver = webdriver.Chrome(options=options)
@@ -16,7 +57,7 @@ driver.get('http://sankhya.lleferragens.com.br/mge/')
 
        
 
-# %%
+# %% USERNAME
 host = driver.find_element(By.CSS_SELECTOR, "sankhya-login")
 
 shadow_root = driver.execute_script('return arguments[0].shadowRoot', host)
@@ -26,15 +67,13 @@ container = driver.execute_script(
     'return arguments[0].shadowRoot.querySelector(".account-input-container")',
     host
 )
-# %%
 
 wait = WebDriverWait(container, 10) 
 wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, "input#user")))
-
 input_element = container.find_element(By.CSS_SELECTOR, "input#user")
 input_element.send_keys("luis.henrique")
 input_element.send_keys(Keys.ENTER)
-# %%
+# %% PASSWORD
 host = driver.find_element(By.CSS_SELECTOR, "sankhya-login")
 
 shadow_root = driver.execute_script('return arguments[0].shadowRoot', host)
@@ -44,26 +83,27 @@ container = driver.execute_script(
     'return arguments[0].shadowRoot.querySelector(".account-input-container")',
     host
 )
-# %%
 
 wait = WebDriverWait(container, 10) 
 wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, "input#password")))
 input_element = container.find_element(By.CSS_SELECTOR, "input#password")
 input_element.send_keys("22064KIV")
 input_element.send_keys(Keys.ENTER)
-# %%
+
+
+#%% ENTRANDO NA ABA
 wait = WebDriverWait(driver, 10)
 wait.until(EC.presence_of_element_located((By.XPATH, '//*[@id="search-input-element"]')))
 driver.find_element(By.XPATH, '//*[@id="search-input-element"]').send_keys('Gerencia WMS')
 sleep(2)
 driver.find_element(By.XPATH, '//*[@id="search-input-element"]').send_keys(Keys.ENTER)
 
-#%%
-
+#%%# ATUALIZA A PAGINA
+sleep(10)
 driver.refresh()
 
 #%%
-#ATUALIZA A PAGINA
+
 
 # 1) Volta pro contexto raiz
 driver.switch_to.default_content()
@@ -73,31 +113,82 @@ iframes = driver.find_elements(By.TAG_NAME, "iframe")
 iframe = iframes[6]
 driver.switch_to.frame(iframe)
 
-
 actions = ActionChains(driver)
+wait = WebDriverWait(driver, 10)
 
-sidebar = driver.find_elements(By.XPATH, '//*[@id="simple-item-content"]/sk-pesquisa-input/sk-text-input/input')
-actions = ActionChains(driver)
 
-sidebar = sidebar[1]
+for i,j in zip(df['CODPROD'], df['novo_valor']):
 
-sidebar.click()
-sleep(1)
-sidebar.send_keys('20917')
 
-driver.find_element(By.ID, 'btnAplicar').click()
-sleep(5)
+
+    sidebar = driver.find_elements(By.XPATH, '//*[@id="simple-item-content"]/sk-pesquisa-input/sk-text-input/input')
+    actions = ActionChains(driver)
+
+    sidebar = sidebar[1]
+
+    sidebar.click()
+    sleep(1)
+    sidebar.send_keys(i)
+
+    driver.find_element(By.ID, 'btnAplicar').click()
+    sleep(5)
+
+    prioridade = driver.find_elements(By.CSS_SELECTOR, 'div[col-id=PRIORIDADE')
+
+    prioridade = prioridade[1]
+
+    prioridade.send_keys(j)
+    actions.send_keys(Keys.ENTER).perform()
+    prioridade.click()
+
+    grid_dep = driver.find_elements(By.CSS_SELECTOR, 'div[col-id=POSSUIDEPENDENTE]')
+
+nao_items = [cell for cell in grid_dep if cell.text.strip() == "Não"]
+
+if len(nao_items) >= 2:
+    primeiro = nao_items[0]
+    ultimo = nao_items[-1]
+
+    driver.execute_script("arguments[0].scrollIntoView(true);", primeiro)
+    driver.execute_script("arguments[0].scrollIntoView(true);", ultimo)
+
+    actions = ActionChains(driver)
+    actions.move_to_element(primeiro).click()
+    actions.key_down(Keys.SHIFT)
+    actions.move_to_element(ultimo).click()
+    actions.key_up(Keys.SHIFT)
+    actions.perform()
+
+    print(f"✅ SHIFT + clique de '{primeiro.text.strip()}' até '{ultimo.text.strip()}'")
+
+elif len(nao_items) == 1:
+    unico = nao_items[0]
+    driver.execute_script("arguments[0].scrollIntoView(true);", unico)
+
+    actions = ActionChains(driver)
+    actions.move_to_element(unico).click().perform()
+
+    print(f"✅ Cliquei no único: '{unico.text.strip()}'")
+
+else:
+    print("🚫 Nenhum 'Não' encontrado.")
+
+    sleep(10)
+    button = driver.find_element(By.XPATH, '//*[@id="page"]/sk-application/sk-viewstack/sk-viewstack-content/div/sk-vbox/sk-hbox[3]/sk-hbox[3]/button[1]')
+
+    button.click()
+
+    wait.until(EC.presence_of_element_located((By.XPATH, '//*[@id="GerenciaDoWMSApp"]/body/div[5]/div/div/div[3]/div[2]/button[2]')))
+
+    button1 = driver.find_element(By.XPATH, '//*[@id="GerenciaDoWMSApp"]/body/div[5]/div/div/div[3]/div[2]/button[2]')
+
+    button1.click()
+
+# %%
+
 #%%
 
-prioridade = driver.find_elements(By.CSS_SELECTOR, 'div[col-id=PRIORIDADE')
-
-prioridade[1].click()
-actions.send_keys(Keys.ENTER).perform()
-prioridade[1].click()
-
-
-
-
+button1 = driver.find_element(By.XPATH, '//*[@id="GerenciaDoWMSApp"]/body/div[5]/div/div/div[3]/div[2]/button[2]')
 # grid.send_keys()
 
 # %%
