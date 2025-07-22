@@ -26,7 +26,7 @@ container = driver.execute_script(
     'return arguments[0].shadowRoot.querySelector(".account-input-container")',
     host
 )
-# %%
+
 
 wait = WebDriverWait(container, 10) 
 wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, "input#user")))
@@ -44,21 +44,21 @@ container = driver.execute_script(
     'return arguments[0].shadowRoot.querySelector(".account-input-container")',
     host
 )
-# %%
+
 
 wait = WebDriverWait(container, 10) 
 wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, "input#password")))
 input_element = container.find_element(By.CSS_SELECTOR, "input#password")
 input_element.send_keys("22064KIV")
 input_element.send_keys(Keys.ENTER)
-# %%
+
 wait = WebDriverWait(driver, 10)
 wait.until(EC.presence_of_element_located((By.XPATH, '//*[@id="search-input-element"]')))
 driver.find_element(By.XPATH, '//*[@id="search-input-element"]').send_keys('Etiquetas do volumoso')
 sleep(2)
 driver.find_element(By.XPATH, '//*[@id="search-input-element"]').send_keys(Keys.ENTER)
 
-#%%
+#%% #ATUALIZA A PAGINA
 
 driver.refresh()
 
@@ -85,6 +85,7 @@ botao.click()
 sleep(5)
 driver.find_element(By.XPATH, '//*[@id="ag-grid#gwt-uid-2"]/sk-application/sk-top-bar/sk-action-button').click()
 
+sleep(2)
 actions.send_keys(Keys.DOWN).perform()
 sleep(1)
 actions.send_keys(Keys.ENTER).perform()
@@ -92,7 +93,20 @@ sleep(1)
 actions.send_keys(Keys.ESCAPE).perform()
 
 
-# %%
+# %% CODIGO ATUALIZADO
+driver.switch_to.default_content()
+
+# 2) Pega o iframe certo
+iframes = driver.find_elements(By.TAG_NAME, "iframe")
+iframe = iframes[6]
+driver.switch_to.frame(iframe)
+
+coluna_cells = driver.find_elements(By.CSS_SELECTOR, 'div[col-id="NOMEAREASEP"]')
+
+coluna_cells[0].click()
+sleep(1)
+coluna_cells[0].click()
+
 ocs = ['107819', '107820']
 clicked = 0
 for i in ocs:
@@ -105,7 +119,7 @@ for i in ocs:
     actions = ActionChains(driver)
     actions.move_to_element(sidebar).perform()
 
-    wait = WebDriverWait(driver, 10)
+    wait = WebDriverWait(driver, 60)
     input_box = wait.until(EC.presence_of_element_located((By.CLASS_NAME, "gwt-TextBox")))
     botao = wait.until(EC.presence_of_element_located((By.CLASS_NAME, "gwt-Button")))
 
@@ -148,6 +162,7 @@ for i in ocs:
         actions.perform()
         # print(f"✅ SHIFT + clique no último: {ultimo.text.strip()}")
 
+        sleep(2)
         driver.find_element(By.XPATH, '//*[@id="ag-grid#gwt-uid-2"]/sk-application/sk-top-bar/sk-action-button').click()
         actions.send_keys(Keys.ENTER).perform()
         sleep(3)
@@ -156,7 +171,10 @@ for i in ocs:
         actions.send_keys(i).perform()
         sleep(2)
         actions.send_keys(Keys.ENTER).perform()
-        sleep(60)
+        wait.until(EC.presence_of_element_located((By.XPATH, '/html/body/div[8]/div/div/div[3]/div[2]/button')))
+        sleep(3)
+        driver.find_element(By.XPATH, '/html/body/div[8]/div/div/div[3]/div[2]/button').click()
+        sleep(2)
         actions.send_keys(Keys.ESCAPE).perform()
     # Volta pro principal se precisar
     driver.switch_to.default_content()
@@ -273,7 +291,7 @@ for idx in range(len(total_iframes)):
 
     # Tenta achar o elemento dentro do iframe
     try:
-        sidebar = driver.find_element(By.CLASS_NAME, 'VCompactBar')
+        sidebar = driver.find_element(By.XPATH, '/html/body/div[8]/div/div/div[3]/div[2]/button')
         print(f"✅ Sidebar encontrada no iframe [{idx}]")
         found = True
         break
