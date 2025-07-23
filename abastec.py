@@ -113,7 +113,7 @@ driver.switch_to.frame(iframe)
 actions = ActionChains(driver)
 wait = WebDriverWait(driver, 10)
 
-prod, prior = ['1682', '30622'], ['-88', '-87']
+prod, prior = ['23861', '608'], ['-88', '-87']
 
 for i, j in zip(prod, prior):
     sleep(4)
@@ -140,6 +140,7 @@ for i, j in zip(prod, prior):
     try:
         prioridade = driver.find_elements(By.CSS_SELECTOR, 'div[col-id=PRIORIDADE')
         prioridade = prioridade[1]
+        prioridade2 = prioridade[2]
 
         actions = ActionChains(driver)
         actions.double_click(prioridade).perform()
@@ -152,7 +153,20 @@ for i, j in zip(prod, prior):
         sleep(2)
         actions.send_keys(Keys.ENTER).perform()
         actions.send_keys(Keys.ENTER).perform()
-        sleep(5)
+        sleep(2)
+
+        actions = ActionChains(driver)
+        actions.double_click(prioridade2).perform()
+        sleep(2)
+
+        for letra in j:
+            actions.send_keys(str(letra)).perform()
+            sleep(0.1)
+
+        sleep(2)
+        actions.send_keys(Keys.ENTER).perform()
+        actions.send_keys(Keys.ENTER).perform()
+        sleep(2)
 
     except (NoSuchElementException, IndexError) as e:
         print(f"⚠️ Erro ao editar prioridade: {e}")
@@ -196,15 +210,25 @@ for i, j in zip(prod, prior):
 
         # Tenta botão de confirmação
         wait.until(EC.presence_of_element_located(
-            (By.XPATH, '//*[@id="GerenciaDoWMSApp"]/body/div[7]/div/div/div[3]/div[2]/button[2]')
+            (By.XPATH, '//*[@id="GerenciaDoWMSApp"]/body/div[6]/div/div/div[3]/div[2]/button[2]')
         ))
-        button1 = driver.find_element(By.XPATH, '//*[@id="GerenciaDoWMSApp"]/body/div[7]/div/div/div[3]/div[2]/button[2]')
+        button1 = driver.find_element(By.XPATH, '//*[@id="GerenciaDoWMSApp"]/body/div[6]/div/div/div[3]/div[2]/button[2]')
         button1.click()
 
-    except (NoSuchElementException, TimeoutException, IndexError) as e:
+        
+        wait.until(EC.presence_of_element_located(
+            (By.XPATH, '//*[@id="GerenciaDoWMSApp"]/body/div[6]/div/div/div[3]/div[2]/button[2]')
+        ))
+        button1 = driver.find_element(By.XPATH, '//*[@id="GerenciaDoWMSApp"]/body/div[6]/div/div/div[3]/div[2]/button[2]')
+        button1.click()
+
+        
+
+
+    except(NoSuchElementException, TimeoutException, IndexError) as e:
         print(f"⚠️ Erro na seleção ou confirmação: {e}")
         continue
-
+        
     sleep(5)
 
 
@@ -252,7 +276,7 @@ for idx in range(len(total_iframes)):
 
     # Tenta achar o elemento dentro do iframe
     try:
-        sidebar = driver.find_element(By.XPATH, '//*[@id="GerenciaDoWMSApp"]/body/div[7]/div/div/div[3]/div[2]/button[2]')
+        sidebar = driver.find_element(By.XPATH, '//*[@id="simple-item-content"]/sk-pesquisa-input/sk-text-input/input')
         print(f"✅ Sidebar encontrada no iframe [{idx}]")
         found = True
         break
