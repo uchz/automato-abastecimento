@@ -113,10 +113,10 @@ driver.switch_to.frame(iframe)
 actions = ActionChains(driver)
 wait = WebDriverWait(driver, 10)
 
-prod, prior = ['1682', '30622'], ['-88', '-87']
+prod, prior = ['23861', '608'], ['-88', '-87']
 
-for i, j in zip(prod, prior):
-    sleep(4)
+for i, j in zip(df['CODPROD'], df['novo_valor']):
+    sleep(2)
 
     try:
         sidebar = driver.find_elements(By.XPATH, '//*[@id="simple-item-content"]/sk-pesquisa-input/sk-text-input/input')
@@ -124,14 +124,15 @@ for i, j in zip(prod, prior):
         sidebar.click()
         sleep(1)
 
-        for letra in i:
+        for letra in str(i):
             sidebar.send_keys(letra)
             sleep(0.1)
 
         sleep(1)
 
         driver.find_element(By.ID, 'btnAplicar').click()
-        sleep(5)
+        sleep(2)
+ 
 
     except (NoSuchElementException, IndexError) as e:
         print(f"⚠️ Erro na pesquisa: {e}")
@@ -140,19 +141,32 @@ for i, j in zip(prod, prior):
     try:
         prioridade = driver.find_elements(By.CSS_SELECTOR, 'div[col-id=PRIORIDADE')
         prioridade = prioridade[1]
+        # prioridade2 = prioridade[2]
 
         actions = ActionChains(driver)
         actions.double_click(prioridade).perform()
         sleep(2)
 
-        for letra in j:
+        for letra in str(j):
             actions.send_keys(str(letra)).perform()
             sleep(0.1)
 
         sleep(2)
         actions.send_keys(Keys.ENTER).perform()
         actions.send_keys(Keys.ENTER).perform()
-        sleep(5)
+        sleep(2)
+
+        # actions = ActionChains(driver)
+        # actions.double_click(prioridade2).perform()
+        # sleep(1)
+
+        for letra in str(j):
+            actions.send_keys(str(letra)).perform()
+            sleep(0.1)
+
+        sleep(2)
+        actions.send_keys(Keys.F7).perform()
+        sleep(2)
 
     except (NoSuchElementException, IndexError) as e:
         print(f"⚠️ Erro ao editar prioridade: {e}")
@@ -188,7 +202,7 @@ for i, j in zip(prod, prior):
             print("🚫 Nenhum 'Não' encontrado.")
             continue
 
-        sleep(10)
+        sleep(5)
 
         # Tenta botão principal
         button = driver.find_element(By.XPATH, '//*[@id="page"]/sk-application/sk-viewstack/sk-viewstack-content/div/sk-vbox/sk-hbox[3]/sk-hbox[3]/button[1]')
@@ -196,16 +210,26 @@ for i, j in zip(prod, prior):
 
         # Tenta botão de confirmação
         wait.until(EC.presence_of_element_located(
-            (By.XPATH, '//*[@id="GerenciaDoWMSApp"]/body/div[7]/div/div/div[3]/div[2]/button[2]')
+            (By.XPATH, '//*[@id="GerenciaDoWMSApp"]/body/div[5]/div/div/div[3]/div[2]/button[2]')
         ))
-        button1 = driver.find_element(By.XPATH, '//*[@id="GerenciaDoWMSApp"]/body/div[7]/div/div/div[3]/div[2]/button[2]')
+        button1 = driver.find_element(By.XPATH, '//*[@id="GerenciaDoWMSApp"]/body/div[5]/div/div/div[3]/div[2]/button[2]')
         button1.click()
 
-    except (NoSuchElementException, TimeoutException, IndexError) as e:
+        
+        wait.until(EC.presence_of_element_located(
+            (By.XPATH, '//*[@id="GerenciaDoWMSApp"]/body/div[5]/div/div/div[3]/div[2]/button[2]')
+        ))
+        button1 = driver.find_element(By.XPATH, '//*[@id="GerenciaDoWMSApp"]/body/div[5]/div/div/div[3]/div[2]/button[2]')
+        button1.click()
+
+        
+
+
+    except(NoSuchElementException, TimeoutException, IndexError) as e:
         print(f"⚠️ Erro na seleção ou confirmação: {e}")
         continue
-
-    sleep(5)
+        
+    sleep(2)
 
 
 
@@ -252,7 +276,7 @@ for idx in range(len(total_iframes)):
 
     # Tenta achar o elemento dentro do iframe
     try:
-        sidebar = driver.find_element(By.XPATH, '//*[@id="GerenciaDoWMSApp"]/body/div[7]/div/div/div[3]/div[2]/button[2]')
+        sidebar = driver.find_element(By.XPATH, '//*[@id="simple-item-content"]/sk-pesquisa-input/sk-text-input/input')
         print(f"✅ Sidebar encontrada no iframe [{idx}]")
         found = True
         break
@@ -265,107 +289,4 @@ driver.switch_to.default_content()
 
 if not found:
     print("🚫 Sidebar não encontrada em nenhum iframe.")
-# %%
-
-
-
-# 1) Volta pro contexto raiz
-driver.switch_to.default_content()
-
-# 2) Pega o iframe certo
-iframes = driver.find_elements(By.TAG_NAME, "iframe")
-iframe = iframes[6]
-driver.switch_to.frame(iframe)
-
-actions = ActionChains(driver)
-wait = WebDriverWait(driver, 10)
-
-prod, prior = [13159, 85580], ['-88', '-87']
-
-for i,j in zip(prod,prior ):
-
-    sleep(4)
-
-    sidebar = driver.find_elements(By.XPATH, '//*[@id="simple-item-content"]/sk-pesquisa-input/sk-text-input/input')
-    actions = ActionChains(driver)
-
-    sidebar = sidebar[1]
-
-    sidebar.click()
-    sleep(1)
-    sidebar.send_keys(i)
-    sleep(1)
-    driver.find_element(By.ID, 'btnAplicar').click()
-    sleep(5)
-
-    prioridade = driver.find_elements(By.CSS_SELECTOR, 'div[col-id=PRIORIDADE')
-    prioridade = prioridade[1]
-
-    actions.double_click(prioridade).perform()
-    sleep(2)
-    for letra in j:
-        actions.send_keys(str(letra)).perform()
-        sleep(0.1)
-        
-    sleep(2)
-    actions.send_keys(Keys.ENTER).perform()
-    actions.send_keys(Keys.ENTER).perform()
-    sleep(5)
-
-    grid_dep = driver.find_elements(By.CSS_SELECTOR, 'div[col-id=POSSUIDEPENDENTE]')
-
-    nao_items = [cell for cell in grid_dep if cell.text.strip() == "Não"]
-
-    if len(nao_items) >= 2:
-
-        primeiro = nao_items[0]
-        ultimo = nao_items[-1]
-
-        driver.execute_script("arguments[0].scrollIntoView(true);", primeiro)
-        driver.execute_script("arguments[0].scrollIntoView(true);", ultimo)
-
-        actions = ActionChains(driver)
-        actions.move_to_element(primeiro).click()
-        actions.key_down(Keys.SHIFT)
-        actions.move_to_element(ultimo).click()
-        actions.key_up(Keys.SHIFT)
-        actions.perform()
-
-        sleep(10)
-        button = driver.find_element(By.XPATH, '//*[@id="page"]/sk-application/sk-viewstack/sk-viewstack-content/div/sk-vbox/sk-hbox[3]/sk-hbox[3]/button[1]')
-
-        button.click()
-
-        wait.until(EC.presence_of_element_located((By.XPATH, '//*[@id="GerenciaDoWMSApp"]/body/div[7]/div/div/div[3]/div[2]/button[2]')))
-
-        button1 = driver.find_element(By.XPATH, '//*[@id="GerenciaDoWMSApp"]/body/div[7]/div/div/div[3]/div[2]/button[2]')
-
-        button1.click()
-
-        print(f"✅ SHIFT + clique de '{primeiro.text.strip()}' até '{ultimo.text.strip()}'")
-
-    elif len(nao_items) == 1:
-        unico = nao_items[0]
-        driver.execute_script("arguments[0].scrollIntoView(true);", unico)
-
-        actions = ActionChains(driver)
-        actions.move_to_element(unico).click().perform()
-
-        print(f"✅ Cliquei no único: '{unico.text.strip()}'")
-
-        sleep(10)
-
-        button = driver.find_element(By.XPATH, '//*[@id="page"]/sk-application/sk-viewstack/sk-viewstack-content/div/sk-vbox/sk-hbox[3]/sk-hbox[3]/button[1]')
-
-        button.click()
-
-        wait.until(EC.presence_of_element_located((By.XPATH, '//*[@id="GerenciaDoWMSApp"]/body/div[7]/div/div/div[3]/div[2]/button[2]')))
-
-        button1 = driver.find_element(By.XPATH, '//*[@id="GerenciaDoWMSApp"]/body/div[7]/div/div/div[3]/div[2]/button[2]')
-
-        button1.click()
-
-
-    else:
-        print("🚫 Nenhum 'Não' encontrado.")
-
+#%%

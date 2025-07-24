@@ -107,7 +107,7 @@ coluna_cells[0].click()
 sleep(1)
 coluna_cells[0].click()
 
-ocs = ['107819', '107820']
+ocs = ['107916']
 clicked = 0
 for i in ocs:
     driver.switch_to.default_content()
@@ -119,7 +119,7 @@ for i in ocs:
     actions = ActionChains(driver)
     actions.move_to_element(sidebar).perform()
 
-    wait = WebDriverWait(driver, 60)
+    wait = WebDriverWait(driver, 240)
     input_box = wait.until(EC.presence_of_element_located((By.CLASS_NAME, "gwt-TextBox")))
     botao = wait.until(EC.presence_of_element_located((By.CLASS_NAME, "gwt-Button")))
 
