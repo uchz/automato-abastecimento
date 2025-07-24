@@ -141,7 +141,11 @@ for i, j in zip(df['CODPROD'], df['novo_valor']):
     try:
         prioridade = driver.find_elements(By.CSS_SELECTOR, 'div[col-id=PRIORIDADE')
         prioridade = prioridade[1]
+<<<<<<< HEAD
         # prioridade2 = prioridade[2]
+=======
+        prioridade2 = prioridade[2]
+>>>>>>> b55b8260af92a6e08b6c4f625074eb9864e7582e
 
         actions = ActionChains(driver)
         actions.double_click(prioridade).perform()
@@ -156,16 +160,29 @@ for i, j in zip(df['CODPROD'], df['novo_valor']):
         actions.send_keys(Keys.ENTER).perform()
         sleep(2)
 
+<<<<<<< HEAD
         # actions = ActionChains(driver)
         # actions.double_click(prioridade2).perform()
         # sleep(1)
 
         for letra in str(j):
+=======
+        actions = ActionChains(driver)
+        actions.double_click(prioridade2).perform()
+        sleep(2)
+
+        for letra in j:
+>>>>>>> b55b8260af92a6e08b6c4f625074eb9864e7582e
             actions.send_keys(str(letra)).perform()
             sleep(0.1)
 
         sleep(2)
+<<<<<<< HEAD
         actions.send_keys(Keys.F7).perform()
+=======
+        actions.send_keys(Keys.ENTER).perform()
+        actions.send_keys(Keys.ENTER).perform()
+>>>>>>> b55b8260af92a6e08b6c4f625074eb9864e7582e
         sleep(2)
 
     except (NoSuchElementException, IndexError) as e:
@@ -210,16 +227,28 @@ for i, j in zip(df['CODPROD'], df['novo_valor']):
 
         # Tenta botão de confirmação
         wait.until(EC.presence_of_element_located(
+<<<<<<< HEAD
             (By.XPATH, '//*[@id="GerenciaDoWMSApp"]/body/div[5]/div/div/div[3]/div[2]/button[2]')
         ))
         button1 = driver.find_element(By.XPATH, '//*[@id="GerenciaDoWMSApp"]/body/div[5]/div/div/div[3]/div[2]/button[2]')
+=======
+            (By.XPATH, '//*[@id="GerenciaDoWMSApp"]/body/div[6]/div/div/div[3]/div[2]/button[2]')
+        ))
+        button1 = driver.find_element(By.XPATH, '//*[@id="GerenciaDoWMSApp"]/body/div[6]/div/div/div[3]/div[2]/button[2]')
+>>>>>>> b55b8260af92a6e08b6c4f625074eb9864e7582e
         button1.click()
 
         
         wait.until(EC.presence_of_element_located(
+<<<<<<< HEAD
             (By.XPATH, '//*[@id="GerenciaDoWMSApp"]/body/div[5]/div/div/div[3]/div[2]/button[2]')
         ))
         button1 = driver.find_element(By.XPATH, '//*[@id="GerenciaDoWMSApp"]/body/div[5]/div/div/div[3]/div[2]/button[2]')
+=======
+            (By.XPATH, '//*[@id="GerenciaDoWMSApp"]/body/div[6]/div/div/div[3]/div[2]/button[2]')
+        ))
+        button1 = driver.find_element(By.XPATH, '//*[@id="GerenciaDoWMSApp"]/body/div[6]/div/div/div[3]/div[2]/button[2]')
+>>>>>>> b55b8260af92a6e08b6c4f625074eb9864e7582e
         button1.click()
 
         
@@ -229,7 +258,11 @@ for i, j in zip(df['CODPROD'], df['novo_valor']):
         print(f"⚠️ Erro na seleção ou confirmação: {e}")
         continue
         
+<<<<<<< HEAD
     sleep(2)
+=======
+    sleep(5)
+>>>>>>> b55b8260af92a6e08b6c4f625074eb9864e7582e
 
 
 
