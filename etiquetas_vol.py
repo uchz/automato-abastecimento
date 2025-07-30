@@ -107,7 +107,7 @@ coluna_cells[0].click()
 sleep(1)
 coluna_cells[0].click()
 
-ocs = ['107916']
+ocs = ['108090']
 clicked = 0
 for i in ocs:
     driver.switch_to.default_content()
@@ -142,89 +142,83 @@ for i in ocs:
         cell for cell in coluna_cells if cell.text.strip().startswith("SEP VOLUMOSO")
     ]
 
-    if len(sep_volumoso_cells) >= 2:
+    if len(sep_volumoso_cells) >= 1:
+        for cell in sep_volumoso_cells:
+            # Rola até a célula e clica
+            driver.execute_script("arguments[0].scrollIntoView({block: 'center'});", cell)
+            actions.move_to_element(cell).click().perform()
+            sleep(5)
 
-        primeiro = sep_volumoso_cells[0]
-        ultimo = sep_volumoso_cells[-1]
+            # Clique no botão de ação
+            driver.find_element(By.XPATH, '//*[@id="ag-grid#gwt-uid-2"]/sk-application/sk-top-bar/sk-action-button').click()
+            actions.send_keys(Keys.ENTER).perform()
+            sleep(5)
 
-        actions = ActionChains(driver)
+            # Preenche a OC novamente
+            actions.send_keys(Keys.TAB).perform()
+            sleep(3)
+            actions.send_keys(i).perform()
+            sleep(3)
+            actions.send_keys(Keys.ENTER).perform()
 
-        # Garante que o primeiro está visível
-        driver.execute_script("arguments[0].scrollIntoView(true);", primeiro)
-        actions.move_to_element(primeiro).click().perform()
-        # print(f"✅ Cliquei no primeiro: {primeiro.text.strip()}")
-        sleep(2)
-        # SHIFT + clique no último
-        driver.execute_script("arguments[0].scrollIntoView(true);", ultimo)
-        actions.key_down(Keys.SHIFT)
-        actions.move_to_element(ultimo).click()
-        actions.key_up(Keys.SHIFT)
-        actions.perform()
-        # print(f"✅ SHIFT + clique no último: {ultimo.text.strip()}")
+            # Espera o botão da modal e clica
+            wait.until(EC.presence_of_element_located((By.XPATH, '/html/body/div[8]/div/div/div[3]/div[2]/button')))
+            sleep(3)
+            driver.find_element(By.XPATH, '/html/body/div[8]/div/div/div[3]/div[2]/button').click()
+            sleep(2)
 
-        sleep(2)
-        driver.find_element(By.XPATH, '//*[@id="ag-grid#gwt-uid-2"]/sk-application/sk-top-bar/sk-action-button').click()
-        actions.send_keys(Keys.ENTER).perform()
-        sleep(3)
-        actions.send_keys(Keys.TAB).perform()
-        sleep(2)
-        actions.send_keys(i).perform()
-        sleep(2)
-        actions.send_keys(Keys.ENTER).perform()
-        wait.until(EC.presence_of_element_located((By.XPATH, '/html/body/div[8]/div/div/div[3]/div[2]/button')))
-        sleep(3)
-        driver.find_element(By.XPATH, '/html/body/div[8]/div/div/div[3]/div[2]/button').click()
-        sleep(2)
-        actions.send_keys(Keys.ESCAPE).perform()
-    # Volta pro principal se precisar
-    driver.switch_to.default_content()
+            # Fecha a modal com ESC
+            actions.send_keys(Keys.ESCAPE).perform()
+            sleep(1)
+        # Volta pro principal se precisar
+    driver.switch_to.default_content() 
 
 
 #%%  SELECIONANDO AS LINHAS DO GRID
 
 
-#SELECIONANDO AS LINHAS
-driver.switch_to.default_content()
-iframes = driver.find_elements(By.TAG_NAME, "iframe")
-iframe = iframes[6]
-driver.switch_to.frame(iframe)
+# #SELECIONANDO AS LINHAS
+# driver.switch_to.default_content()
+# iframes = driver.find_elements(By.TAG_NAME, "iframe")
+# iframe = iframes[6]
+# driver.switch_to.frame(iframe)
 
-coluna_cells = driver.find_elements(By.CSS_SELECTOR, 'div[col-id="NOMEAREASEP"]')
+# coluna_cells = driver.find_elements(By.CSS_SELECTOR, 'div[col-id="NOMEAREASEP"]')
 
 
-print(f"Total de células encontradas: {len(coluna_cells)}")
-clicked = 0
+# print(f"Total de células encontradas: {len(coluna_cells)}")
+# clicked = 0
 
-# 3) Filtra SEP VOLUMOSO
-sep_volumoso_cells = [
-    cell for cell in coluna_cells if cell.text.strip().startswith("SEP VOLUMOSO")
-]
+# # 3) Filtra SEP VOLUMOSO
+# sep_volumoso_cells = [
+#     cell for cell in coluna_cells if cell.text.strip().startswith("SEP VOLUMOSO")
+# ]
 
-print(f"➡️ Total SEP VOLUMOSO: {len(sep_volumoso_cells)}")
+# print(f"➡️ Total SEP VOLUMOSO: {len(sep_volumoso_cells)}")
 
-if len(sep_volumoso_cells) >= 2:
+# if len(sep_volumoso_cells) >= 2:
 
-    primeiro = sep_volumoso_cells[0]
-    ultimo = sep_volumoso_cells[-1]
+#     primeiro = sep_volumoso_cells[0]
+#     ultimo = sep_volumoso_cells[-1]
 
-    actions = ActionChains(driver)
+#     actions = ActionChains(driver)
 
-    # Garante que o primeiro está visível
-    driver.execute_script("arguments[0].scrollIntoView(true);", primeiro)
-    actions.move_to_element(primeiro).click().perform()
-    print(f"✅ Cliquei no primeiro: {primeiro.text.strip()}")
+#     # Garante que o primeiro está visível
+#     driver.execute_script("arguments[0].scrollIntoView(true);", primeiro)
+#     actions.move_to_element(primeiro).click().perform()
+#     print(f"✅ Cliquei no primeiro: {primeiro.text.strip()}")
 
-    # SHIFT + clique no último
-    driver.execute_script("arguments[0].scrollIntoView(true);", ultimo)
-    actions.key_down(Keys.SHIFT)
-    actions.move_to_element(ultimo).click()
-    actions.key_up(Keys.SHIFT)
-    actions.perform()
-    print(f"✅ SHIFT + clique no último: {ultimo.text.strip()}")
-# Volta pro principal se precisar
-    driver.switch_to.default_content()
+#     # SHIFT + clique no último
+#     driver.execute_script("arguments[0].scrollIntoView(true);", ultimo)
+#     actions.key_down(Keys.SHIFT)
+#     actions.move_to_element(ultimo).click()
+#     actions.key_up(Keys.SHIFT)
+#     actions.perform()
+#     print(f"✅ SHIFT + clique no último: {ultimo.text.strip()}")
+# # Volta pro principal se precisar
+#     driver.switch_to.default_content()
 
-#    print(j)
+# #    print(j)
 
 
 
@@ -291,7 +285,7 @@ for idx in range(len(total_iframes)):
 
     # Tenta achar o elemento dentro do iframe
     try:
-        sidebar = driver.find_element(By.XPATH, '/html/body/div[8]/div/div/div[3]/div[2]/button')
+        sidebar = driver.find_element(By.XPATH, '//*[@id="form-item-01Z"]/input')
         print(f"✅ Sidebar encontrada no iframe [{idx}]")
         found = True
         break
