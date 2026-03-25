@@ -8,7 +8,7 @@ import urllib.parse
 # CONFIG
 URL = "http://10.10.2.2:8080/webservice_mfc/tratativaPickingKingOuro.html"
 NUMERO = "5521975372117"  # sem o +
-NOME_GRUPO = 'Faltas Picking'
+NOME_GRUPO = 'Tratativas mezanino'
 
 # salva sessão do WhatsApp
 options = Options()
@@ -23,6 +23,9 @@ time.sleep(15)  # tempo pra login manual
 
 itens_vistos = set()
 #%%
+def abrir_whatsapp():
+    driver.get("https://web.whatsapp.com/")
+    time.sleep(15)
 
 def enviar_grupo(msg):
     try:
@@ -89,7 +92,7 @@ def enviar_whatsapp(msg):
 print("🚀 Monitorando itens faltantes...")
 
 
-#%%
+#%% 
 while True:
     try:
         linhas = driver.find_elements(By.XPATH, "//table//tbody/tr")
@@ -124,7 +127,7 @@ while True:
         # 👇 AGORA envia depois de coletar tudo
         for msg in novos_itens:
             print(msg)
-            enviar_whatsapp(msg)
+            enviar_grupo(msg)
 
         time.sleep(15)
 
