@@ -1,46 +1,29 @@
+
 import pyautogui as py
 from mouseinfo import MouseInfoWindow
 from time import sleep
+import pandas as pd
 
+df = pd.read_excel('end.xlsx')
 
-end = [157618,
-151055,
-160226,
-157619,
-157620,
-157621,
-157622,
-157623,
-157624,
-157625,
-157626,
-151056,
-157627,
-157628,
-157630,
-157631,
-157629,
-157632,
-160227,
-157633,
-157634]
+end = df['End']
 
-ordem = [46792]
+ordem = df['Ordem']
 
 sleep(10)
 
-for i in end:
-    sleep(2)
+for i,n in zip(end, ordem):
+    sleep(1)
     py.click(1451,121)
-    sleep(2)
+    sleep(1)
     py.write(str(i))
-    sleep(2)
+    sleep(1.3)
     py.press('enter')
-    sleep(2)
+    sleep(1)
     py.click(629,582)
-    sleep(2)
-    py.write(str(ordem))
-    sleep(2)
+    sleep(1)
+    py.write(str(n))
+    sleep(1)
     py.click(528,114)
       
 

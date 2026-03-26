@@ -208,7 +208,7 @@ for i, j in zip(df['CODPROD'], df['novo_valor']):
             sleep(0.1)
 
         sleep(2)
-        actions.send_keys(Keys.F7).perform()
+        actions.send_keys(Keys.ENTER).perform()
         # actions.send_keys(Keys.ENTER).perform()
         sleep(2)
 
@@ -248,7 +248,7 @@ for i, j in zip(df['CODPROD'], df['novo_valor']):
             print("🚫 Nenhum 'Não' encontrado.")
             continue
 
-        sleep(5)
+        sleep(4)
 
         # Tenta botão principal
         button = driver.find_element(By.XPATH, '//*[@id="page"]/sk-application/sk-viewstack/sk-viewstack-content/div/sk-vbox/sk-hbox[3]/sk-hbox[3]/button[1]')
@@ -276,7 +276,7 @@ for i, j in zip(df['CODPROD'], df['novo_valor']):
         print(f"⚠️ Erro na seleção ou confirmação: {e}")
         continue
         
-    sleep(3)
+    sleep(2)
 
 
 
