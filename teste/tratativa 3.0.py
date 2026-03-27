@@ -5,10 +5,16 @@ from queue import Queue
 
 import customtkinter as ctk
 from tkinter import messagebox
+import csv
+import os
+from datetime import datetime
 
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
+from selenium.common.exceptions import StaleElementReferenceException
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 
 # CONFIG
 URL = "http://10.10.2.2:8080/webservice_mfc/tratativaPickingKingOuro.html"
@@ -17,7 +23,9 @@ URL = "http://10.10.2.2:8080/webservice_mfc/tratativaPickingKingOuro.html"
 # CONTROLE GLOBAL
 # ==============================
 
+
 log_queue = Queue()
+fila_envio = Queue()
 rodando = False
 
 def log(msg):
@@ -26,86 +34,143 @@ def log(msg):
 # ==============================
 # BOT
 # ==============================
+def salvar_csv(data, produto, endereco):
+    arquivo = "historico_ocorrencias.csv"
+    arquivo_existe = os.path.isfile(arquivo)
 
-def iniciar_bot(numero, nome_grupo):
+    with open(arquivo, mode="a", newline="", encoding="utf-8") as f:
+        writer = csv.writer(f)
+
+        # Cabeçalho (só cria uma vez)
+        if not arquivo_existe:
+            writer.writerow(["Data", "Produto", "Endereço", "Hora", "Timestamp"])
+
+        agora = datetime.now()
+
+        writer.writerow([
+            data,
+            produto,
+            endereco,
+            agora.strftime("%H:%M:%S"),
+            agora.strftime("%Y-%m-%d %H:%M:%S")
+        ])
+
+
+def iniciar_bot(numero):
     global rodando
 
     itens_vistos = set()
     contador = 0
 
+    # =========================
+    # DRIVER MONITOR
+    # =========================
     options = Options()
-    options.add_argument(r"user-data-dir=C:\selenium_profile")
+    options.add_argument(r"user-data-dir=C:\selenium_profile_monitor")
 
     driver = webdriver.Chrome(options=options)
     driver.get(URL)
 
-    time.sleep(10)
+    # =========================
+    # DRIVER WHATSAPP
+    # =========================
+    options_wpp = Options()
+    options_wpp.add_argument(r"user-data-dir=C:\selenium_profile_wpp")
+
+    driver_wpp = webdriver.Chrome(options=options_wpp)
+    driver_wpp.get("https://web.whatsapp.com")
 
     log("🚀 Bot iniciado")
 
-    def enviar_whatsapp(msg):
-        try:
-            msg_formatada = urllib.parse.quote(msg)
+    # =========================
+    # WORKER WHATSAPP
+    # =========================
+    def worker_whatsapp():
+        while rodando:
+            try:
+                msg = fila_envio.get()
 
-            url = f"https://web.whatsapp.com/send?phone={numero}&text={msg_formatada}"
-            driver.get(url)
+                msg_formatada = urllib.parse.quote(msg)
+                url = f"https://web.whatsapp.com/send?phone={numero}&text={msg_formatada}"
 
-            time.sleep(15)
+                driver_wpp.get(url)
 
-            botao = driver.find_element(By.XPATH, '//*[@id="main"]/footer/div[1]/div/span/div/div/div/div[4]/div/span')
-            botao.click()
+                WebDriverWait(driver_wpp, 30).until(
+                    EC.presence_of_element_located((By.XPATH, '//*[@id="main"]/footer'))
+                )
 
-            time.sleep(5)
-            driver.get(URL)
+                botao = driver_wpp.find_element(
+                    By.XPATH,
+                    '//*[@id="main"]/footer/div[1]/div/span/div/div/div/div[4]/div/span'
+                )
+                botao.click()
 
-        except Exception as e:
-            log(f"Erro WhatsApp: {e}")
-            driver.get(URL)
+                log("📤 Mensagem enviada")
 
+                time.sleep(10)
+                fila_envio.task_done()
+
+            except Exception as e:
+                if "stale" in str(e).lower():
+                    continue
+                log(f"Erro WhatsApp: {e}")
+
+    threading.Thread(target=worker_whatsapp, daemon=True).start()
+
+    # =========================
+    # LOOP PRINCIPAL
+    # =========================
     while rodando:
         try:
             linhas = driver.find_elements(By.XPATH, "//table//tbody/tr")
 
-            novos_itens = []
+            for i in range(len(linhas)):
+                try:
+                    linha = driver.find_elements(By.XPATH, "//table//tbody/tr")[i]
+                    colunas = linha.find_elements(By.TAG_NAME, "td")
 
-            for linha in linhas:
-                colunas = linha.find_elements(By.TAG_NAME, "td")
+                    if len(colunas) < 9:
+                        continue
 
-                if len(colunas) < 9:
+                    data = colunas[0].text
+                    endereco = colunas[2].text
+                    cod_produto = colunas[7].text
+
+                    chave = f"{cod_produto}-{endereco}"
+
+
+                    if chave not in itens_vistos:
+                        itens_vistos.add(chave)
+                        contador += 1
+
+                        salvar_csv(data, cod_produto, endereco)
+
+                        msg = (
+                            f"\n🚨 Ocorrência #{contador}\n\n"
+                            f"Produto: {cod_produto}\n"
+                            f"Endereço: {endereco}\n"
+                            f"Hora: {data}"
+                        )
+
+                        log(msg)
+                        fila_envio.put(msg)
+
+                        contador_label.configure(text=f"Ocorrências: {contador}")
+
+                except StaleElementReferenceException:
                     continue
 
-                data = colunas[0].text
-                endereco = colunas[2].text
-                cod_produto = colunas[7].text
-
-                chave = f"{cod_produto}-{endereco}"
-
-                if chave not in itens_vistos:
-                    itens_vistos.add(chave)
-                    contador += 1
-
-                    msg = (
-                        f"🚨 Ocorrência #{contador}\n\n"
-                        f"Produto: {cod_produto}\n"
-                        f"Endereço: {endereco}\n"
-                        f"Hora: {data}"
-                    )
-
-                    novos_itens.append(msg)
-
-            for msg in novos_itens:
-                log(msg)
-                enviar_whatsapp(msg)
-                contador_label.configure(text=f"Ocorrências: {contador}")
-                time.sleep(2)
-
-            time.sleep(15)
+            time.sleep(10)
 
         except Exception as e:
-            log(f"Erro geral: {e}")
+            if "stale" in str(e).lower():
+                pass
+            else:
+                log(f"Erro geral: {e}")
             time.sleep(5)
 
     driver.quit()
+    driver_wpp.quit()
     log("🛑 Bot parado")
 
 # ==============================
@@ -113,32 +178,24 @@ def iniciar_bot(numero, nome_grupo):
 # ==============================
 
 ctk.set_appearance_mode("dark")
-ctk.set_default_color_theme("blue")
+ctk.set_default_color_theme("dark-blue")
 
 app = ctk.CTk()
-app.title("Monitor de Ocorrências")
-app.geometry("400x500")
+app.title("Painel de Ocorrências PRO")
+app.geometry("450x520")
 
-# título
-titulo = ctk.CTkLabel(app, text="🚨 Monitor de Ocorrências", font=("Arial", 18))
+titulo = ctk.CTkLabel(app, text="🚨 Painel de Ocorrências", font=("Arial", 18))
 titulo.pack(pady=10)
 
-# status
 status_label = ctk.CTkLabel(app, text="Status: 🔴 Parado")
 status_label.pack()
 
-# contador
 contador_label = ctk.CTkLabel(app, text="Ocorrências: 0")
 contador_label.pack(pady=5)
 
-# entrada telefone
 entry_numero = ctk.CTkEntry(app, placeholder_text="55 + DDD + Número")
 entry_numero.insert(0, "55")
 entry_numero.pack(pady=10)
-
-# entrada grupo
-entry_grupo = ctk.CTkEntry(app, placeholder_text="Grupo (opcional)")
-entry_grupo.pack(pady=5)
 
 # ==============================
 # BOTÕES
@@ -148,7 +205,6 @@ def iniciar():
     global rodando
 
     numero = entry_numero.get()
-    grupo = entry_grupo.get()
 
     if not numero.startswith("55"):
         numero = "55" + numero
@@ -165,7 +221,7 @@ def iniciar():
     status_label.configure(text="Status: 🟢 Rodando")
     log("Iniciando bot...")
 
-    thread = threading.Thread(target=iniciar_bot, args=(numero, grupo))
+    thread = threading.Thread(target=iniciar_bot, args=(numero,))
     thread.daemon = True
     thread.start()
 
@@ -175,7 +231,6 @@ def parar():
     status_label.configure(text="Status: 🔴 Parado")
     log("Parando bot...")
 
-# botões
 frame_botoes = ctk.CTkFrame(app)
 frame_botoes.pack(pady=10)
 
@@ -189,7 +244,7 @@ btn_parar.pack(side="left", padx=10)
 # LOG
 # ==============================
 
-log_box = ctk.CTkTextbox(app, width=350, height=250)
+log_box = ctk.CTkTextbox(app, width=360, height=260)
 log_box.pack(pady=10)
 
 def atualizar_log():
